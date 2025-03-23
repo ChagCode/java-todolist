@@ -1,0 +1,43 @@
+package com.example.todolist;
+
+import java.util.ArrayList;
+import java.util.Random;
+
+public class Database {
+    private ArrayList<Note> notes = new ArrayList<>();
+
+    // когда из разных классов необходимо работать с одним и тем же объектом
+    // делаем идиную базу данных через паттерн - singleton
+    private static Database instace = null;
+
+    public static Database getInstance() {
+        if (instace == null) {
+            instace = new Database();
+        }
+        return instace;
+    }
+
+
+    public Database() {
+        Random random = new Random();
+        for (int i = 0; i < 20; i++) {
+            Note note = new Note(i, "Note " + i, random.nextInt(3));
+            notes.add(note);
+        }
+    }
+
+    public void add(Note note) {
+        notes.add(note);
+    }
+    public void remove(int id) {
+        for (int i = 0; i < notes.size(); i++) {
+            Note note = notes.get(i);
+            if (note.getId() == id) {
+                notes.remove(note);
+            }
+        }
+    }
+    public ArrayList<Note> getNotes() {
+        return new ArrayList<>(notes);
+    }
+}
