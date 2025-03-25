@@ -13,6 +13,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -21,8 +23,10 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
-    private LinearLayout linearLayoutNotes;
+    private RecyclerView recyclerViewNotes;
     private FloatingActionButton buttonAddNote;
+    private NotesAdapter notesAdapter;
+
     private Database database = Database.getInstance();
 
     @Override
@@ -30,6 +34,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+        notesAdapter = new NotesAdapter();
+
+        // для того, чтобы RecyclerView понимал, какой необходимо использовать адаптер выполним
+        recyclerViewNotes.setAdapter(notesAdapter);
+
+        // теперь необходимо сообщить каким образом отображать элементы
+
+
 
         // клик - добавление новой заметки (переход на AddNoteActivity)
         buttonAddNote.setOnClickListener(new View.OnClickListener() {
@@ -40,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    // короче. при добалении новой заметки, начальный экран не обновляется.
+    // короче, при добалении новой заметки, начальный экран не обновляется.
     // поэтому нужно делать так!
     @Override
     protected void onResume() {
@@ -48,44 +60,11 @@ public class MainActivity extends AppCompatActivity {
         showNotes();
     }
     private void showNotes() {
-        // для обнуления экрана - чтоб не было дубляжа
-        linearLayoutNotes.removeAllViews();
-        // для каждой заметки создадим view и вставим в макет
-        for (Note note : database.getNotes()) {
-            // add "note_item.xml" in "linearLayoutNotes".
-            // Но для начала необходимо "note_item.xml" преобразовать в view элемент.
-            View view = getLayoutInflater().inflate(
-                    R.layout.note_item,
-                    // linearLayoutNotes - контейнер в который будет вложен элемент
-                    linearLayoutNotes,
-                    false
-            );
-            // add TEXT in notes, т.е. чтобы работать с view элементом необходимо, его найти
-            // view.findViewById - !обрати внимание!, что id ищем в view, а не в основном макете
-            TextView textViewNote = view.findViewById(R.id.textViewNote);
-            textViewNote.setText(note.getText());
-
-            // add background in note
-            int colorResId;
-            switch (note.getPriority()) {
-                case 0:
-                    colorResId = android.R.color.holo_green_light;
-                    break;
-                case 1:
-                    colorResId = android.R.color.holo_orange_light;
-                    break;
-                default:
-                    colorResId = android.R.color.holo_red_light;
-            }
-            int color = ContextCompat.getColor(this, colorResId);
-            textViewNote.setBackgroundColor(color);
-
-            linearLayoutNotes.addView(view);
-        }
+        notesAdapter.setNotes(database.getNotes());
     }
 
     private void initView() {
-        linearLayoutNotes = findViewById(R.id.linearLayoutNotes);
+        recyclerViewNotes = findViewById(R.id.recyclerViewNotes);
         buttonAddNote = findViewById(R.id.buttonAddNote);
     }
 }

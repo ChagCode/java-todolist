@@ -16,8 +16,6 @@ public class Database {
         }
         return instace;
     }
-
-
     public Database() {
         Random random = new Random();
         for (int i = 0; i < 20; i++) {
@@ -25,7 +23,6 @@ public class Database {
             notes.add(note);
         }
     }
-
     public void add(Note note) {
         notes.add(note);
     }
