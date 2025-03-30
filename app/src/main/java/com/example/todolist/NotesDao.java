@@ -1,5 +1,6 @@
 package com.example.todolist;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
@@ -10,7 +11,7 @@ import java.util.List;
 @Dao
 public interface NotesDao {
     @Query("SELECT * FROM notes")
-    List<Note> getNotes(); // метод возвращает список всех заметок из БД
+    LiveData<List<Note>> getNotes(); // метод возвращает список всех заметок из БД
 
     @Insert
     void add(Note note); // метод вставляет в БД

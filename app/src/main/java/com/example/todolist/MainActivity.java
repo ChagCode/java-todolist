@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,7 +32,8 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton buttonAddNote;
     private NotesAdapter notesAdapter;
     private NoteDb noteBd;
-    private Handler handler = new Handler(Looper.getMainLooper());
+
+//    private Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +55,15 @@ public class MainActivity extends AppCompatActivity {
 
         // для того, чтобы RecyclerView понимал, какой необходимо использовать адаптер выполним
         recyclerViewNotes.setAdapter(notesAdapter);
+
+        // подпишемся на изменения в БД
+        noteBd.notesDao().getNotes().observe(this, new Observer<List<Note>>() {
+            @Override
+            public void onChanged(List<Note> notes) {
+                // в метод onChanged прилетают данные и мы их устанавливаем в Адаптер
+                notesAdapter.setNotes(notes);
+            }
+        });
 
         // для удаления свайпом необходимо
         // ItemTouchHelper.RIGHT | "<-это 'или'" ItemTouchHelper.LEFT - для определения свайпа
@@ -80,12 +91,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         noteBd.notesDao().remove(note.getId());
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                showNotes();
-                            }
-                        });
                     }
                 });
                 thread.start();
@@ -106,29 +111,30 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // короче, при добалении новой заметки, начальный экран не обновляется.
-    // поэтому нужно делать так!
-    @Override
-    protected void onResume() {
-        super.onResume();
-        showNotes();
-    }
+//    // короче, при добалении новой заметки, начальный экран не обновляется.
+//    // поэтому нужно делать так!
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//        showNotes();
+//    }
 
-    private void showNotes() {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                List<Note> notes = noteBd.notesDao().getNotes();
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        notesAdapter.setNotes(notes);
-                    }
-                });
-            }
-        });
-        thread.start();
-    }
+//    private void showNotes() {
+//        Thread thread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                // получаем список всех заметок
+//                List<Note> notes = noteBd.notesDao().getNotes();
+//                handler.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        notesAdapter.setNotes(notes);
+//                    }
+//                });
+//            }
+//        });
+//        thread.start();
+//    }
 
     private void initView() {
         recyclerViewNotes = findViewById(R.id.recyclerViewNotes);
