@@ -10,13 +10,23 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHolder> {
 
     // в адаптаре должна хранится коллекция, которую необходимо отразить
-    private ArrayList<Note> notes = new ArrayList<>();
+    private List<Note> notes = new ArrayList<>();
+    private OnNoteClickListener onNoteClickListener;
 
-    public void setNotes(ArrayList<Note> notes) {
+    public List<Note> getNotes() {
+        return new ArrayList<>(notes);
+    }
+
+    public void setOnNoteClickListener(OnNoteClickListener onNoteClickListener) {
+        this.onNoteClickListener = onNoteClickListener;
+    }
+
+    public void setNotes(List<Note> notes) {
         this.notes = notes;
         notifyDataSetChanged(); // данный метод сообщит адаптеру, что данные изменились
     }
@@ -55,6 +65,18 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
         }
         int color = ContextCompat.getColor(viewHolder.itemView.getContext(), colorResId);
         viewHolder.textViewNote.setBackgroundColor(color);
+
+        // для реагрования на удаление
+        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // при клике на item view вызываем метод и передаем заметку
+                // обязательно проверка на null иначе упадет
+                if (onNoteClickListener != null) {
+                    onNoteClickListener.onNoteClick(note);
+                }
+            }
+        });
     }
 
     // возвращает количество объектов, которое находится в коллекции
@@ -70,5 +92,10 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
             super(itemView);
             textViewNote = itemView.findViewById(R.id.textViewNote);
         }
+    }
+
+    // объявим интерфейс для слушателя клика по элементу списка
+    interface OnNoteClickListener {
+        void onNoteClick(Note note);
     }
 }

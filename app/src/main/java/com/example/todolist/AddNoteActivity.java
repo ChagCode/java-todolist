@@ -3,6 +3,8 @@ package com.example.todolist;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,12 +22,14 @@ public class AddNoteActivity extends AppCompatActivity {
     private EditText editTextEnterNote;
     private RadioButton radioButtonGreen, radioButtonOrange;
     private Button buttonSaveNote;
-    private Database database = Database.getInstance();
+    private NoteDb noteDb;
+    private Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_note);
+        noteDb = NoteDb.getInstance(getApplication());
         initView();
         buttonSaveNote.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,12 +54,23 @@ public class AddNoteActivity extends AppCompatActivity {
     private void saveNote() {
         String text = editTextEnterNote.getText().toString().trim();
         int priority = getPriority();
-        int id = database.getNotes().size();
-        Note note = new Note(id, text, priority);
-        database.add(note);
+        Note note = new Note(text, priority);
 
-        // чтобы закончить работу AddNoteActivity необходимо вызвать
-        finish();
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                noteDb.notesDao().add(note);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        // чтобы закончить работу AddNoteActivity необходимо вызвать
+                        // в главном потоке
+                        finish();
+                    }
+                });
+            }
+        });
+        thread.start();
     }
 
     private void initView() {

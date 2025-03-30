@@ -3,45 +3,98 @@ package com.example.todolist;
 import android.content.Intent;
 import android.database.DatabaseErrorHandler;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
-
     private RecyclerView recyclerViewNotes;
     private FloatingActionButton buttonAddNote;
     private NotesAdapter notesAdapter;
-
-    private Database database = Database.getInstance();
+    private NoteDb noteBd;
+    private Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // получаем экземпляр базы данных
+        noteBd = NoteDb.getInstance(getApplication());
+
         initView();
         notesAdapter = new NotesAdapter();
+
+        // слушатель для удаления элемента
+        notesAdapter.setOnNoteClickListener(new NotesAdapter.OnNoteClickListener() {
+            @Override
+            public void onNoteClick(Note note) {
+            }
+        });
 
         // для того, чтобы RecyclerView понимал, какой необходимо использовать адаптер выполним
         recyclerViewNotes.setAdapter(notesAdapter);
 
-        // теперь необходимо сообщить каким образом отображать элементы
+        // для удаления свайпом необходимо
+        // ItemTouchHelper.RIGHT | "<-это 'или'" ItemTouchHelper.LEFT - для определения свайпа
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
+                0,
+                ItemTouchHelper.RIGHT | ItemTouchHelper.LEFT
+        ) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView,
+                                  @NonNull RecyclerView.ViewHolder viewHolder,
+                                  @NonNull RecyclerView.ViewHolder target
+            ) {
+                return false;
+            }
 
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder,
+                                 int direction) {
+                int position = viewHolder.getAdapterPosition();
+                // add getter getNotes() и получем объект по которому будет произведен свайп
+                Note note = notesAdapter.getNotes().get(position);
 
+                // во всех местах, где работаем с БД. Выносим работу в отдельный поток.
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        noteBd.notesDao().remove(note.getId());
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                showNotes();
+                            }
+                        });
+                    }
+                });
+                thread.start();
+            }
+        }
+        );
+
+        // теперь приклепляем к recyclerView свайп
+        itemTouchHelper.attachToRecyclerView(recyclerViewNotes);
 
         // клик - добавление новой заметки (переход на AddNoteActivity)
         buttonAddNote.setOnClickListener(new View.OnClickListener() {
@@ -52,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
     // короче, при добалении новой заметки, начальный экран не обновляется.
     // поэтому нужно делать так!
     @Override
@@ -59,8 +113,21 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         showNotes();
     }
+
     private void showNotes() {
-        notesAdapter.setNotes(database.getNotes());
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                List<Note> notes = noteBd.notesDao().getNotes();
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        notesAdapter.setNotes(notes);
+                    }
+                });
+            }
+        });
+        thread.start();
     }
 
     private void initView() {
