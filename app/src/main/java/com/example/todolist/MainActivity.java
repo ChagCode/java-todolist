@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerViewNotes;
     private FloatingActionButton buttonAddNote;
     private NotesAdapter notesAdapter;
-    private NoteDb noteBd;
+    private MainViewModel viewModel;
 
 //    private Handler handler = new Handler(Looper.getMainLooper());
 
@@ -40,8 +40,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // получаем экземпляр базы данных
-        noteBd = NoteDb.getInstance(getApplication());
+        viewModel = new MainViewModel(getApplication());
 
         initView();
         notesAdapter = new NotesAdapter();
@@ -50,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
         notesAdapter.setOnNoteClickListener(new NotesAdapter.OnNoteClickListener() {
             @Override
             public void onNoteClick(Note note) {
+                // кол-во кликов по заметке
             }
         });
 
@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerViewNotes.setAdapter(notesAdapter);
 
         // подпишемся на изменения в БД
-        noteBd.notesDao().getNotes().observe(this, new Observer<List<Note>>() {
+        viewModel.getNotes().observe(this, new Observer<List<Note>>() {
             @Override
             public void onChanged(List<Note> notes) {
                 // в метод onChanged прилетают данные и мы их устанавливаем в Адаптер
@@ -86,14 +86,8 @@ public class MainActivity extends AppCompatActivity {
                 // add getter getNotes() и получем объект по которому будет произведен свайп
                 Note note = notesAdapter.getNotes().get(position);
 
-                // во всех местах, где работаем с БД. Выносим работу в отдельный поток.
-                Thread thread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        noteBd.notesDao().remove(note.getId());
-                    }
-                });
-                thread.start();
+                // remove note
+                viewModel.remove(note);
             }
         }
         );

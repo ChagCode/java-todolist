@@ -17,7 +17,6 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
     // в адаптаре должна хранится коллекция, которую необходимо отразить
     private List<Note> notes = new ArrayList<>();
     private OnNoteClickListener onNoteClickListener;
-
     public List<Note> getNotes() {
         return new ArrayList<>(notes);
     }
