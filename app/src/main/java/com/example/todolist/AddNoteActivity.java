@@ -16,20 +16,29 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
 public class AddNoteActivity extends AppCompatActivity {
 
     private EditText editTextEnterNote;
     private RadioButton radioButtonGreen, radioButtonOrange;
     private Button buttonSaveNote;
-    private NoteDb noteDb;
-    private Handler handler = new Handler(Looper.getMainLooper());
+    private AddNoteViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_note);
-        noteDb = NoteDb.getInstance(getApplication());
+        viewModel = new ViewModelProvider(this).get(AddNoteViewModel.class);
+        viewModel.getShouldCloseScreen().observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean shouldClose) {
+                if (shouldClose) {
+                    finish();
+                }
+            }
+        });
         initView();
         buttonSaveNote.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -38,7 +47,6 @@ public class AddNoteActivity extends AppCompatActivity {
             }
         });
     }
-
     private int getPriority() {
         int priority;
         if (radioButtonGreen.isChecked()) {
@@ -50,29 +58,13 @@ public class AddNoteActivity extends AppCompatActivity {
         }
         return priority;
     }
-
     private void saveNote() {
         String text = editTextEnterNote.getText().toString().trim();
         int priority = getPriority();
         Note note = new Note(text, priority);
+        viewModel.saveNode(note);
 
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                noteDb.notesDao().add(note);
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        // чтобы закончить работу AddNoteActivity необходимо вызвать
-                        // в главном потоке
-                        finish();
-                    }
-                });
-            }
-        });
-        thread.start();
     }
-
     private void initView() {
         editTextEnterNote = findViewById(R.id.editTextEnterNote);
         radioButtonGreen = findViewById(R.id.radioButtonGreen);

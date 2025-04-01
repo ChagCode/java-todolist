@@ -4,29 +4,33 @@ import android.app.Application;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
-import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import java.util.List;
 
-public class MainViewModel extends AndroidViewModel {
+public class AddNoteViewModel extends AndroidViewModel {
     private NoteDb noteDb;
-    public MainViewModel(@NonNull Application application) {
+    private MutableLiveData<Boolean> shouldCloseScreen = new MutableLiveData<>();
+
+    public AddNoteViewModel(@NonNull Application application) {
         super(application);
         noteDb = NoteDb.getInstance(application);
     }
-    public LiveData<List<Note>> getNotes() {
-        return noteDb.notesDao().getNotes();
+    public LiveData<Boolean> getShouldCloseScreen() {
+        return shouldCloseScreen;
     }
-    public void remove(Note note) {
-        // во всех местах, где работаем с БД. Выносим работу в отдельный поток.
+    public void saveNode(Note note) {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                noteDb.notesDao().remove(note.getId());
+                noteDb.notesDao().add(note);
+                shouldCloseScreen.postValue(true);
             }
         });
         thread.start();
+    }
+    public LiveData<List<Note>> getNotes() {
+        return noteDb.notesDao().getNotes();
     }
 }

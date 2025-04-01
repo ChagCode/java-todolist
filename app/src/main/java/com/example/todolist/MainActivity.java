@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -17,6 +18,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -39,19 +41,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        viewModel = new MainViewModel(getApplication());
+        // чтобы наша модель могла пережить переворот экрана используем след. реализацию
+        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
         initView();
         notesAdapter = new NotesAdapter();
-
-        // слушатель для удаления элемента
-        notesAdapter.setOnNoteClickListener(new NotesAdapter.OnNoteClickListener() {
-            @Override
-            public void onNoteClick(Note note) {
-                // кол-во кликов по заметке
-            }
-        });
 
         // для того, чтобы RecyclerView понимал, какой необходимо использовать адаптер выполним
         recyclerViewNotes.setAdapter(notesAdapter);
