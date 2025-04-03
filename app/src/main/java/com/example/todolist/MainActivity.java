@@ -35,8 +35,6 @@ public class MainActivity extends AppCompatActivity {
     private NotesAdapter notesAdapter;
     private MainViewModel viewModel;
 
-//    private Handler handler = new Handler(Looper.getMainLooper());
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -98,31 +96,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    // когда activity получает фокус
 
-//    // короче, при добалении новой заметки, начальный экран не обновляется.
-//    // поэтому нужно делать так!
-//    @Override
-//    protected void onResume() {
-//        super.onResume();
-//        showNotes();
-//    }
 
-//    private void showNotes() {
-//        Thread thread = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                // получаем список всех заметок
-//                List<Note> notes = noteBd.notesDao().getNotes();
-//                handler.post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        notesAdapter.setNotes(notes);
-//                    }
-//                });
-//            }
-//        });
-//        thread.start();
-//    }
+    protected void onResume() {
+        super.onResume();
+        viewModel.refreshList();
+    }
 
     private void initView() {
         recyclerViewNotes = findViewById(R.id.recyclerViewNotes);

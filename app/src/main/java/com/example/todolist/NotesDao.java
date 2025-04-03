@@ -8,14 +8,18 @@ import androidx.room.Query;
 
 import java.util.List;
 
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
+
 @Dao
 public interface NotesDao {
     @Query("SELECT * FROM notes")
-    LiveData<List<Note>> getNotes(); // метод возвращает список всех заметок из БД
+    Single<List<Note>> getNotes(); // метод возвращает список всех заметок из БД (и не только)
 
     @Insert
-    void add(Note note); // метод вставляет в БД
+    Completable add(Note note); // метод вставляет в БД
 
     @Query("DELETE FROM notes WHERE id=:id") // ставим : при обращении к передоваемому параметру
-    void remove(int id); // метод удаляет из БД по id
+    Completable remove(int id); // метод удаляет из БД по id
 }
+ 

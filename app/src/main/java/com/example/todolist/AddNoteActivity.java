@@ -43,6 +43,8 @@ public class AddNoteActivity extends AppCompatActivity {
         buttonSaveNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // от многократного нажатия
+                buttonSaveNote.setEnabled(false);
                 saveNote();
             }
         });
