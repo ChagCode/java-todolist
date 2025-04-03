@@ -2,6 +2,7 @@ package com.example.todolist;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -15,6 +16,7 @@ import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Action;
+import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class AddNoteViewModel extends AndroidViewModel {
@@ -44,9 +46,15 @@ public class AddNoteViewModel extends AndroidViewModel {
                         //  используется для закрытия текущего экрана после успешного сохранения
                         shouldCloseScreen.setValue(true);
                     }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Throwable {
+                        Log.d("MainViewModel", "Error saveNode");
+                    }
                 });
         compositeDisposable.add(disposable);
     }
+
     // после использования метода saveNode() необходимо завершить подписку (от утечек памяти)
     // напрмер в случае уничтожения viewModel
     // вызывается метод onCleared()
@@ -55,8 +63,4 @@ public class AddNoteViewModel extends AndroidViewModel {
         super.onCleared();
         compositeDisposable.dispose();
     }
-
-//    public LiveData<List<Note>> getNotes() {
-//        return noteDb.notesDao().getNotes();
-//    }
 }

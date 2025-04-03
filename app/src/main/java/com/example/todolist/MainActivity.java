@@ -99,11 +99,6 @@ public class MainActivity extends AppCompatActivity {
     // когда activity получает фокус
 
 
-    protected void onResume() {
-        super.onResume();
-        viewModel.refreshList();
-    }
-
     private void initView() {
         recyclerViewNotes = findViewById(R.id.recyclerViewNotes);
         buttonAddNote = findViewById(R.id.buttonAddNote);

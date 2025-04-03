@@ -14,7 +14,7 @@ import io.reactivex.rxjava3.core.Single;
 @Dao
 public interface NotesDao {
     @Query("SELECT * FROM notes")
-    Single<List<Note>> getNotes(); // метод возвращает список всех заметок из БД (и не только)
+    LiveData<List<Note>> getNotes(); // метод возвращает список всех заметок из БД (и не только)
 
     @Insert
     Completable add(Note note); // метод вставляет в БД

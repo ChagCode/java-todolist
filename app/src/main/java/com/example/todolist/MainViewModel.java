@@ -20,30 +20,14 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class MainViewModel extends AndroidViewModel {
     private NoteDb noteDb;
-    private MutableLiveData<List<Note>> notes = new MutableLiveData<>();
     private CompositeDisposable compositeDisposable = new CompositeDisposable(); // создаем коллекцию всех подписок
     public MainViewModel(@NonNull Application application) {
         super(application);
         noteDb = NoteDb.getInstance(application);
     }
     public LiveData<List<Note>> getNotes() {
-        return notes;
+        return noteDb.notesDao().getNotes();
     }
-    public void refreshList() {
-        Disposable disposable = noteDb.notesDao().getNotes()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<List<Note>>() {
-                    @Override
-                    public void accept(List<Note> notesFromDb) throws Throwable {
-                        notes.setValue(notesFromDb);
-                    }
-                });
-        compositeDisposable.add(disposable);
-    }
-//    public LiveData<List<Note>> getNotes() {
-//        return noteDb.notesDao().getNotes();
-//    }
     public void remove(Note note) {
         Disposable disposable = noteDb.notesDao().remove(note.getId())
                 .subscribeOn(Schedulers.io())
@@ -53,7 +37,11 @@ public class MainViewModel extends AndroidViewModel {
                     public void run() throws Throwable {
                         Log.d("NoteRepository",
                                 "Заметка c ID - " + note.getId() + ", успешно удалена");
-                        refreshList();
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Throwable {
+                        Log.d("MainViewModel", "Error remove");
                     }
                 });
         compositeDisposable.add(disposable);
